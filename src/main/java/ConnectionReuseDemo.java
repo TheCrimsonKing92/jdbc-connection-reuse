@@ -21,8 +21,8 @@ public class ConnectionReuseDemo {
     private static final int FETCH_SIZE = 10;
     private static final long DELAY = 5000; // 11000;
 
-    private static final long LOOPS = 20;
-    private static final int TIMES = 5;
+    private static final long LOOPS = 100;
+    private static final int TIMES = 10;
 
     private static final DatabaseConfigurator configurator;
     private static final SufficientDataDao connectionDao;
@@ -126,8 +126,9 @@ public class ConnectionReuseDemo {
         );
     }
 
-    private static Map<DaoType, QueryResultAggregate> run() throws InterruptedException {
+    private static Map<DaoType, QueryResultAggregate> run() {
         return Stream.of(connectionDao, templateDao)
+                     .parallel()
                      .collect(
                              Collectors.toMap(
                                      SufficientDataDao::getDaoType,
@@ -150,10 +151,11 @@ public class ConnectionReuseDemo {
         }
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException, SQLException {
+    public static void main(String[] args) throws InterruptedException {
         final Map<DaoType, List<QueryResultAggregate>> allResults = new HashMap<>();
 
         for (int i = 0; i < LOOPS; i++) {
+            logger.info("Main loop {} of {}", i, LOOPS);
             final Map<DaoType, QueryResultAggregate> currentResult = run();
             logResultsComparison(currentResult);
             addResults(allResults, currentResult);
